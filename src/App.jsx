@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useLayoutEffect, createContext, useContext } from "react";
 import { Mic, Camera, Send, Settings, Plus, Trash2, Pencil, Undo2, Copy, Download, Upload, X, Loader2, Search, RotateCcw, Users, Calculator } from "lucide-react";
+import { Analytics } from '@vercel/analytics/react';
 
 /* ───────── helpers ───────── */
 const CATS = ["Food", "Hotel", "Travel", "Darshan/Tickets", "Misc"];
@@ -1147,6 +1148,7 @@ export default function App() {
   return (
     <LangCtx.Provider value={store.lang || "en"}>
       <AppInner store={store} setStore={setStore} />
+      <Analytics />
     </LangCtx.Provider>
   );
 }
