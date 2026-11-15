@@ -273,22 +273,72 @@ function Setup({ onCreate, onCancel }) {
   const [f, setF] = useState({ name: "", date: new Date().toISOString().slice(0, 10), target: 5000, list: "" });
   const members = useMemo(() => parseMembers(f.list), [f.list]);
   const T = useT();
+  const target = Number(f.target) || 0;
+  const ok = f.name.trim() && members.length > 0;
+  const card = "rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm";
+  const lab = "block text-sm font-bold text-indigo-950";
   return (
-    <div className="mx-auto max-w-xl space-y-4 p-4">
-      <h1 className="text-2xl font-extrabold text-indigo-950">{T("newTrip")}</h1>
-      <input className={inp} placeholder={T("tripName") + " — Vaishno Devi Yatra 2026"} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-      <div className="grid grid-cols-2 gap-3">
-        <label className="text-sm font-medium">{T("start")}<input type="date" className={inp} value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} /></label>
-        <label className="text-sm font-medium">{T("perTarget")}<input type="number" className={inp} value={f.target} onChange={(e) => setF({ ...f, target: e.target.value })} /></label>
-      </div>
-      <label className="block text-sm font-medium">
-        {T("pasteList")}
-        <textarea rows={8} className={inp} value={f.list} onChange={(e) => setF({ ...f, list: e.target.value })} placeholder={"1. Ramesh Sharma\n2. Suresh Patel\n3. Mohan"} />
-      </label>
-      <p className="text-sm text-slate-600">{members.length} {T("tabM")}</p>
-      <div className="flex gap-2">
-        <button disabled={!f.name.trim() || !members.length} className={`${btn} flex-1 bg-indigo-950 text-white disabled:opacity-40`} onClick={() => onCreate({ id: uid(), name: f.name.trim(), date: f.date, target: Number(f.target) || 0, members, tx: [] })}>{T("generate")}</button>
-        {onCancel && <button className={`${btn} border-2 border-slate-300`} onClick={onCancel} aria-label="Cancel"><X size={16} /></button>}
+    <div className="pb-28">
+      <header className="flex items-center gap-3 bg-indigo-950 p-3 text-white">
+        <button aria-label="Back" className={`${btn} bg-white/10`} onClick={onCancel}><span className="text-lg leading-none">←</span></button>
+        <div>
+          <div className="text-xs text-amber-300">YatraHisab AI</div>
+          <h1 className="text-lg font-extrabold leading-tight">{T("newTrip")}</h1>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-xl space-y-4 p-3">
+        <section className={card}>
+          <label className={lab}>
+            {T("tripName")}
+            <input className={`${inp} mt-1 font-normal`} placeholder="Vaishno Devi Yatra 2026" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+          </label>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <label className={lab}>
+              {T("start")}
+              <input type="date" className={`${inp} mt-1 font-normal`} value={f.date} onChange={(e) => setF({ ...f, date: e.target.value })} />
+            </label>
+            <label className={lab}>
+              {T("perTarget")}
+              <div className="relative mt-1">
+                <span className="absolute left-3 top-2.5 font-bold text-slate-500">₹</span>
+                <input type="number" inputMode="numeric" className={`${inp} pl-8 font-normal`} value={f.target} onChange={(e) => setF({ ...f, target: e.target.value })} />
+              </div>
+            </label>
+          </div>
+        </section>
+
+        <section className={card}>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 className={lab}>{T("pasteList")}</h2>
+            <span className="rounded-full bg-amber-400 px-2.5 py-0.5 text-sm font-extrabold text-indigo-950">{members.length}</span>
+          </div>
+          <textarea rows={6} className={`${inp} font-normal`} value={f.list} onChange={(e) => setF({ ...f, list: e.target.value })} placeholder={"1. Ramesh Sharma\n2. Suresh Patel\n3. Mohan"} />
+          {members.length > 0 && (
+            <div className="mt-3 flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
+              {members.map((m, i) => (
+                <span key={m.id} className="rounded-full bg-indigo-50 px-3 py-1 text-sm font-semibold text-indigo-950"><span className="text-slate-400">{i + 1}.</span> {m.name}</span>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {members.length > 0 && target > 0 && (
+          <div className="rounded-2xl bg-indigo-950 p-3 text-center text-white" dir="ltr">
+            <div className="text-sm text-indigo-200">{members.length} × {fmt(target)}</div>
+            <div className="text-3xl font-extrabold text-amber-300">{fmt(members.length * target)}</div>
+          </div>
+        )}
+      </main>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t-4 border-amber-400 bg-indigo-950 p-3">
+        <button
+          disabled={!ok}
+          className={`${btn} mx-auto flex w-full max-w-xl bg-amber-400 py-3 text-base text-indigo-950 disabled:opacity-40`}
+          onClick={() => onCreate({ id: uid(), name: f.name.trim(), date: f.date, target, members, tx: [] })}
+        >
+          {T("generate")}
+        </button>
       </div>
     </div>
   );
@@ -988,7 +1038,7 @@ function AppInner({ store, setStore }) {
     <div dir={lang === "ur" ? "rtl" : "ltr"} className="min-h-screen bg-[#FBF7EE] pb-32 text-slate-900">
       <header className="flex items-center gap-2 bg-indigo-950 p-3 text-white">
         <div className="min-w-0 flex-1">
-          <button className="block text-xs text-amber-300" onClick={() => setHome(true)}>🏠 YatraHisab AI · v7 {!store.key && "· Demo Mode"}</button>
+          <button className="block text-xs text-amber-300" onClick={() => setHome(true)}>🏠 YatraHisab AI · v8 {!store.key && "· Demo Mode"}</button>
           <select className="w-full truncate bg-transparent text-lg font-bold" value={store.active} onChange={(e) => setStore((s) => ({ ...s, active: e.target.value }))}>
             {store.trips.map((t) => <option key={t.id} value={t.id} className="text-slate-900">{t.name}</option>)}
           </select>
